@@ -1,38 +1,46 @@
-import React, { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import snek from './snek.jpg'
 import './App.css'
 
-class LambdaDemo extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { loading: false, msg: null }
-  }
+const LambdaDemo = () => {
+  const [loading, setLoading] = useState(false)
+  const [endpoint, setEndpoint] = useState(null)
+  const [message, setMessage] = useState('')
+  const [hasClicked, setHasClicked] = useState(false)
 
-  handleClick = (api) => (e) => {
+  const handleClick = (api) => (e) => {
     e.preventDefault()
+    setEndpoint(api)
+    setHasClicked(true)
+  }
 
-    this.setState({ loading: true })
-    fetch('/.netlify/functions/' + api)
+  useEffect(() => {
+    if (!endpoint) return
+
+    setLoading(true)
+    fetch('/.netlify/functions/' + endpoint)
       .then((response) => response.json())
-      .then((json) => this.setState({ loading: false, msg: json.msg }))
-  }
+      .then((json) => {
+        setLoading(false)
+        setEndpoint(false)
+        setMessage(json.msg)
+      })
+  }, [endpoint])
 
-  render() {
-    const { loading, msg } = this.state
-
-    return (
-      <p>
-        <button onClick={this.handleClick('hello')}>
-          {loading ? 'Loading...' : 'Call Lambda'}
-        </button>
-        <button onClick={this.handleClick('async-dadjoke')}>
-          {loading ? 'Loading...' : 'Call Async Lambda'}
-        </button>
-        <br />
-        <span>{msg}</span>
-      </p>
-    )
-  }
+  return (
+    <p>
+      <button disabled={loading} onClick={handleClick('snakes')}>
+        {loading
+          ? 'Loading...'
+          : `Press Me For ${hasClicked ? 'More ' : ''}Snakes!`}
+      </button>
+      {/* <button onClick={handleClick('async-dadjoke')}>
+        {loading ? 'Loading...' : 'Call Async Lambda'}
+      </button> */}
+      <br />
+      <span>{message}</span>
+    </p>
+  )
 }
 
 const App = () => {
@@ -42,6 +50,7 @@ const App = () => {
         <img src={snek} className="App-logo" alt="logo" />
         <h2 className="title">Welcome to Hillary's Snake Quest!</h2>
         <p>Check back later for lots of snake-related fun!</p>
+        <LambdaDemo />
         <p className="small">
           <em>Yay! Snakes!</em>
         </p>
